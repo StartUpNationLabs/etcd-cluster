@@ -1,0 +1,4 @@
+- hosts: k8s_etcd
+  roles:
+    - role: githubixx.etcd
+      tags: role-etcd

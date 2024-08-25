@@ -1,0 +1,7 @@
+etcd_settings_user:
+  "log-outputs": "stdout"
+  "heartbeat-interval": "250"
+  "election-timeout": "2500"
+  "peer-cert-allowed-cn": "etcd"
+  etcd_interface: "{{ k8s_interface }}"
+  etcd_ca_conf_directory: "{{ k8s_ca_conf_directory }}"
