@@ -1,7 +1,7 @@
 ---
 - name: Generate and distribute certificates, deploy etcd cluster
   hosts: localhost
-  become: yes
+  become: true
   vars:
     config_dir: "{{ playbook_dir }}/configs"
     entry_config_file: "/config/config.json"
@@ -16,7 +16,7 @@
       ansible.builtin.file:
         path: ./configs/cfssl/output
         state: directory
-        mode: '0755'
+        mode: "0777"
 
     - name: Generate all certificates
       command: >
@@ -38,13 +38,12 @@
         path: "{{ item.path }}"
         owner: unknown
         group: unknown
-        mode: '0640'
+        mode: "0640"
       with_items: "{{ output_files.files }}"
-
 
 - name: Upload certificates to etcd nodes
   hosts: etcd_nodes
-  become: yes
+  become: true
   tasks:
     - name: Supprimer les fichiers sur les hôtes distants dans /etc/cfssl/output
       ansible.builtin.file:
@@ -55,8 +54,8 @@
       ansible.builtin.file:
         path: /etc/cfssl/output
         state: directory
-        mode: '0755'
-        
+        mode: "0755"
+
     - name: Upload CA certificate
       copy:
         src: "{{ playbook_dir }}/configs/cfssl/output"
@@ -64,7 +63,7 @@
 
 - name: Configure UFW for etcd
   hosts: etcd_nodes
-  become: yes
+  become: true
   tasks:
     - name: Ensure UFW is installed
       ansible.builtin.package:
@@ -93,7 +92,7 @@
 
 - name: Deploy etcd with Docker Compose
   hosts: etcd_nodes
-  become: yes
+  become: true
   vars:
     etcd_image: "quay.io/coreos/etcd:v3.5.9"
     etcd_data_dir: "/var/lib/etcd"

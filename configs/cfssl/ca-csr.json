@@ -5,13 +5,11 @@
     "size": 4096
   },
   "names": [
-      {
-          "C": "FR",
-          "L": "Sophia-Antipolis",
-          "ST": "KFC"
-      }
+    {
+      "C": "FR",
+      "L": "Sophia-Antipolis",
+      "ST": "KFC"
+    }
   ],
-  "hosts" : [
-    "*.apoorva64.com"
-  ]
+  "hosts": ["*.apoorva64.com"]
 }
