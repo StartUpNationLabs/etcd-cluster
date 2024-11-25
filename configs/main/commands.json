@@ -1,0 +1,10 @@
+{
+    "commands": [
+      "mkdir -p {new_directory}",
+      "cfssl gencert -initca {ca_csr_file} | cfssljson -bare {output_ca_prefix}",
+      "cfssl gencert -ca {ca_cert_file} -ca-key {ca_key_file} -config {ca_config_file} -profile=etcd {node1_csr_file} | cfssljson -bare {output_node1_prefix}",
+      "cfssl gencert -ca {ca_cert_file} -ca-key {ca_key_file} -config {ca_config_file} -profile=etcd {node2_csr_file} | cfssljson -bare {output_node2_prefix}",
+      "cfssl gencert -ca {ca_cert_file} -ca-key {ca_key_file} -config {ca_config_file} -profile=etcd {node3_csr_file} | cfssljson -bare {output_node3_prefix}",
+      "cfssl gencert -ca {ca_cert_file} -ca-key {ca_key_file} -config {ca_config_file} -profile=client {client_csr_file} | cfssljson -bare {output_client_prefix}"
+    ]
+}

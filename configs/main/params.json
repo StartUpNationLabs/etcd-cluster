@@ -1,0 +1,40 @@
+{
+    "parameters": [
+      {
+        "new_directory" : "/data/output"
+      },
+      {
+        "ca_csr_file": "/data/ca-csr.json",
+        "output_ca_prefix": "/data/output/ca"
+      },
+      {
+        "ca_cert_file": "/data/output/ca.pem",
+        "ca_key_file": "/data/output/ca-key.pem",
+        "ca_config_file": "/data/ca-config.json",
+        "node1_csr_file": "/data/node3-csr.json",
+        "output_node1_prefix": "/data/output/node-maxime"
+      },
+      {
+        "ca_cert_file": "/data/output/ca.pem",
+        "ca_key_file": "/data/output/ca-key.pem",
+        "ca_config_file": "/data/ca-config.json",
+        "node2_csr_file": "/data/node2-csr.json",
+        "output_node2_prefix": "/data/output/node-apoorva"
+      },
+      {
+        "ca_cert_file": "/data/output/ca.pem",
+        "ca_key_file": "/data/output/ca-key.pem",
+        "ca_config_file": "/data/ca-config.json",
+        "node3_csr_file": "/data/node1-csr.json",
+        "output_node3_prefix": "/data/output/node-raphael"
+      },
+      {
+        "ca_cert_file": "/data/output/ca.pem",
+        "ca_key_file": "/data/output/ca-key.pem",
+        "ca_config_file": "/data/ca-config.json",
+        "client_csr_file": "/data/client-csr.json",
+        "output_client_prefix": "/data/output/client"
+      }
+    ]
+  }
+  

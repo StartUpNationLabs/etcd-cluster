@@ -1,4 +1,130 @@
-- hosts: k8s_etcd
-  roles:
-    - role: githubixx.etcd
-      tags: role-etcd
+---
+- name: Generate and distribute certificates, deploy etcd cluster
+  hosts: localhost
+  become: yes
+  vars:
+    config_dir: "{{ playbook_dir }}/configs"
+    entry_config_file: "/config/config.json"
+
+  tasks:
+    - name: Supprimer les fichiers localement dans ./configs/cfssl/output
+      ansible.builtin.file:
+        path: ./configs/cfssl/output
+        state: absent
+
+    - name: Recréer le répertoire ./configs/cfssl/output
+      ansible.builtin.file:
+        path: ./configs/cfssl/output
+        state: directory
+        mode: '0755'
+
+    - name: Generate all certificates
+      command: >
+        docker run --rm -v "{{ config_dir }}/main:/config" -v "{{ config_dir }}/cfssl:/data"
+        -e CONFIG_FILE="{{ entry_config_file }}"
+        {{ cfssl_image }}
+      register: ca_output
+      changed_when: "'ca.pem' in ca_output.stdout"
+
+    - name: Fix ownership and permissions for CFSSL output files
+      ansible.builtin.find:
+        paths: "{{ playbook_dir }}/configs/cfssl/output"
+        recurse: yes
+        file_type: file
+      register: output_files
+
+    - name: Update ownership and permissions for CFSSL output files
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        owner: unknown
+        group: unknown
+        mode: '0640'
+      with_items: "{{ output_files.files }}"
+
+
+- name: Upload certificates to etcd nodes
+  hosts: etcd_nodes
+  become: yes
+  tasks:
+    - name: Supprimer les fichiers sur les hôtes distants dans /etc/cfssl/output
+      ansible.builtin.file:
+        path: /etc/cfssl/output
+        state: absent
+
+    - name: Recréer le répertoire /etc/cfssl/output sur les hôtes distants
+      ansible.builtin.file:
+        path: /etc/cfssl/output
+        state: directory
+        mode: '0755'
+        
+    - name: Upload CA certificate
+      copy:
+        src: "{{ playbook_dir }}/configs/cfssl/output"
+        dest: /etc/cfssl
+
+- name: Configure UFW for etcd
+  hosts: etcd_nodes
+  become: yes
+  tasks:
+    - name: Ensure UFW is installed
+      ansible.builtin.package:
+        name: ufw
+        state: present
+
+    - name: Allow port 2379 for etcd client communication
+      ansible.builtin.command: ufw allow 2379/tcp
+      register: client_port
+
+    - name: Allow port 2380 for etcd peer communication
+      ansible.builtin.command: ufw allow 2380/tcp
+      register: peer_port
+
+    - name: Allow SSH for remote access
+      ansible.builtin.command: ufw allow 22/tcp
+      register: ssh_port
+
+    - name: Enable UFW if not already enabled
+      ansible.builtin.shell: |
+        ufw enable
+        ufw status verbose
+      args:
+        warn: false
+      when: "'inactive' in ansible_facts['ufw']['status'] | default('')"
+
+- name: Deploy etcd with Docker Compose
+  hosts: etcd_nodes
+  become: yes
+  vars:
+    etcd_image: "quay.io/coreos/etcd:v3.5.9"
+    etcd_data_dir: "/var/lib/etcd"
+    docker_compose_dir: "/opt/docker/etcd"
+  tasks:
+    - name: Create Docker Compose directory
+      ansible.builtin.file:
+        path: "{{ docker_compose_dir }}"
+        state: directory
+        mode: "0755"
+
+    - name: Generate docker-compose.yml
+      ansible.builtin.template:
+        src: "configs/templates/docker-compose.yml.j2"
+        dest: "{{ docker_compose_dir }}/docker-compose.yml"
+        mode: "0644"
+
+    - name: Stop and remove existing etcd services
+      ansible.builtin.shell: |
+        docker compose down --remove-orphans || true
+      args:
+        chdir: "{{ docker_compose_dir }}"
+
+    - name: Pull the latest etcd image
+      ansible.builtin.shell: |
+        docker compose pull
+      args:
+        chdir: "{{ docker_compose_dir }}"
+
+    - name: Start etcd services
+      ansible.builtin.shell: |
+        docker compose up -d
+      args:
+        chdir: "{{ docker_compose_dir }}"

@@ -1,0 +1,27 @@
+version: "3.8"
+services:
+  etcd:
+    image: "{{ etcd_image }}"
+    container_name: etcd
+    restart: always
+    ports:
+      - "2379:2379"
+      - "2380:2380"
+    volumes:
+      - "/etc/cfssl/output:/etc/cfssl"  # Certificats
+      - "{{ etcd_data_dir }}:/var/lib/etcd"  # Données etcd
+    environment:
+      ETCD_NAME: "{{ etcd_domain_name }}"
+      ETCD_INITIAL_ADVERTISE_PEER_URLS: "https://{{ etcd_domain_name }}:2380"
+      ETCD_LISTEN_PEER_URLS: "https://0.0.0.0:2380"
+      ETCD_LISTEN_CLIENT_URLS: "https://0.0.0.0:2379"
+      ETCD_ADVERTISE_CLIENT_URLS: "https://{{ etcd_domain_name }}:2379"
+      ETCD_INITIAL_CLUSTER: "etcd-node-maxime.apoorva64.com=https://etcd-node-maxime.apoorva64.com:2380,etcd-node-apoorva.apoorva64.com=https://etcd-node-apoorva.apoorva64.com:2380,etcd-node-raphael.apoorva64.com=https://etcd-node-raphael.apoorva64.com:2380"
+      ETCD_INITIAL_CLUSTER_STATE: new
+      ETCD_INITIAL_CLUSTER_TOKEN: "etcd-cluster-1"
+      ETCD_TRUSTED_CA_FILE: "/etc/cfssl/ca.pem"
+      ETCD_CERT_FILE: "/etc/cfssl/{{ etcd_name }}.pem"
+      ETCD_KEY_FILE: "/etc/cfssl/{{ etcd_name }}-key.pem"
+      ETCD_PEER_TRUSTED_CA_FILE: "/etc/cfssl/ca.pem"
+      ETCD_PEER_CERT_FILE: "/etc/cfssl/{{ etcd_name }}.pem"
+      ETCD_PEER_KEY_FILE: "/etc/cfssl/{{ etcd_name }}-key.pem"

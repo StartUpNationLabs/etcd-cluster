@@ -1,0 +1,17 @@
+{
+  "CN": "etcd-root-k3s-poulet",
+  "key": {
+    "algo": "rsa",
+    "size": 4096
+  },
+  "names": [
+      {
+          "C": "FR",
+          "L": "Sophia-Antipolis",
+          "ST": "KFC"
+      }
+  ],
+  "hosts" : [
+    "*.apoorva64.com"
+  ]
+}
